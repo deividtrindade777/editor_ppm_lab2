@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPM Editor</title>
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Cabecalho ── -->
+<header>
+    <div>
+        <div class="logo">PPM_EDITOR</div>
+        <div class="subtitle">Manipulador de Imagens PPM P3</div>
+    </div>
+</header>
+
+<div class="workspace">
+
+    <!-- ── Barra Lateral ── -->
+    <aside class="sidebar">
+
+        <!-- Upload de arquivo -->
+        <div class="sidebar-section">
+            <div class="section-label">Arquivo</div>
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" accept=".ppm">
+                <div class="upload-icon">📂</div>
+                <strong>Selecionar arquivo .ppm</strong>
+                <p>clique ou arraste aqui</p>
+            </div>
+        </div>
+
+        <!-- Filtros de cor -->
+        <div class="sidebar-section">
+            <div class="section-label">Filtros de Cor</div>
+            <div class="filter-grid">
+                <button class="filter-btn cor"  data-filter="negativo"  disabled>Negativo          <span class="tag">COR</span></button>
+                <button class="filter-btn cor"  data-filter="brilho"    disabled>Brilho             <span class="tag">COR</span></button>
+                <button class="filter-btn cor"  data-filter="contraste" disabled>Contraste          <span class="tag">COR</span></button>
+                <button class="filter-btn cor"  data-filter="canal"     disabled>Ajuste de Canal    <span class="tag">COR</span></button>
+                <button class="filter-btn cor"  data-filter="cinza"     disabled>Escala de Cinza    <span class="tag">COR</span></button>
+                <button class="filter-btn cor"  data-filter="limiar"    disabled>Limiarizacao       <span class="tag">COR</span></button>
+            </div>
+        </div>
+
+        <!-- Filtros posicionais -->
+        <div class="sidebar-section">
+            <div class="section-label">Filtros Posicionais</div>
+            <div class="filter-grid">
+                <button class="filter-btn pos"  data-filter="flipv"     disabled>Flip Vertical      <span class="tag">POS</span></button>
+                <button class="filter-btn pos"  data-filter="fliph"     disabled>Flip Horizontal    <span class="tag">POS</span></button>
+                <button class="filter-btn pos"  data-filter="rot90"     disabled>Rotacao 90°        <span class="tag">POS</span></button>
+                <button class="filter-btn pos"  data-filter="rot180"    disabled>Rotacao 180°       <span class="tag">POS</span></button>
+                <button class="filter-btn pos"  data-filter="rot270"    disabled>Rotacao 270°       <span class="tag">POS</span></button>
+                <button class="filter-btn pos"  data-filter="mosaico"   disabled>Mosaico            <span class="tag">POS</span></button>
+            </div>
+        </div>
+
+        <!-- Convolucao -->
+        <div class="sidebar-section">
+            <div class="section-label">Convolucao</div>
+            <div class="filter-grid">
+                <button class="filter-btn conv" data-filter="convolucao" disabled>Nucleo Personalizado <span class="tag">CONV</span></button>
+            </div>
+        </div>
+
+        <!-- Acoes -->
+        <div class="sidebar-section">
+            <div class="section-label">Acoes</div>
+            <button class="action-btn btn-undo"  id="btnUndo"  disabled>↩ Desfazer</button>
+            <button class="action-btn btn-save"  id="btnSave"  disabled>⬇ Salvar .ppm</button>
+            <button class="action-btn btn-reset" id="btnReset" disabled>✕ Resetar imagem</button>
+        </div>
+
+    </aside>
+
+    <!-- ── Area de Visualizacao ── -->
+    <main class="main" id="mainArea">
+
+        <!-- Estado inicial (sem imagem carregada) -->
+        <div class="empty-state" id="emptyState">
+            <div class="big">🖼</div>
+            <p>Nenhuma imagem carregada.<br>
+               Selecione um arquivo <strong>.ppm</strong> na barra lateral.</p>
+        </div>
+
+        <!-- Canvas onde a imagem e exibida -->
+        <div class="canvas-wrap" id="canvasWrap" style="display:none">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Informacoes da imagem carregada -->
+        <div class="img-info" id="imgInfo"></div>
+
+    </main>
+</div>
+
+<!-- ── Modal de Parametros ── -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2 id="modalTitle">FILTRO</h2>
+        <div id="modalBody"></div>
+        <div class="modal-actions">
+            <button class="btn-cancel" id="btnCancel">Cancelar</button>
+            <button class="btn-apply"  id="btnApply" >Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast de notificacao -->
+<div class="toast" id="toast"></div>
+
+<!-- Logica da aplicacao -->
+<script src="filtros.js"></script>
+
+</body>
+</html>

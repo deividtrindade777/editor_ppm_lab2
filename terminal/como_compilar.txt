@@ -1,0 +1,15 @@
+COMO COMPILAR E EXECUTAR
+========================
+ 
+1. Abra o terminal na pasta terminal/
+ 
+2. Compile:
+   gcc -o ppm_filtros ppm_filtros.c -lm
+ 
+3. Execute:
+   Linux/Mac: ./ppm_filtros
+   Windows:   .\ppm_filtros.exe
+ 
+4. Digite o nome do arquivo PPM quando solicitado.
+   - Nome simples:     gradiente.ppm
+     (o arquivo deve estar na mesma pasta que o executavel)
