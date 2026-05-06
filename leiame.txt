@@ -7,13 +7,9 @@ ESTRUTURA DO PROJETO
 
   trab_candia/
   ├── leiame.txt               <- este arquivo
-  ├── terminal/
-  │   ├── ppm_filtros.c        <- codigo C (entrega principal)
-  │   └── como_compilar.txt    <- instrucao rapida de compilacao
-  └── interface/
-      ├── index.html           <- pagina principal da interface visual
-      ├── style.css            <- estilos visuais
-      └── filtros.js           <- logica dos filtros em JavaScript
+  └── terminal/
+      ├── ppm_filtros.c        <- codigo C (entrega principal)
+      └── como_compilar.txt    <- instrucao rapida de compilacao
 
 ================================================================================
                          PARTE 1 — CODIGO C (TERMINAL)
@@ -36,7 +32,7 @@ USO
   O arquivo PPM de entrada deve estar na mesma pasta que o executavel.
   O programa exibira um menu interativo onde o usuario escolhe o filtro
   pelo numero correspondente. E possivel aplicar varios filtros antes de
-  salvar. A opcao 14 salva o resultado e a opcao 0 encerra o programa.
+  salvar. A opcao 8 salva o resultado e a opcao 0 encerra o programa.
 
 FORMATO PPM P3 SUPORTADO
 -------------------------
@@ -82,30 +78,7 @@ SELECAO DE REGIAO (RECORTE)
 
   Uso: opcao 2, informe o delta (ex: 50 ou -30), defina a regiao.
 
-3. CONTRASTE
-------------
-  Ajusta o contraste em relacao ao ponto medio da escala de cor
-  (mid = max_cor / 2):
-    novo_canal = clamp(mid + fator * (canal - mid), 0, max_cor)
-
-  Fator > 1.0 afasta as cores do ponto medio (mais contraste).
-  Fator entre 0.0 e 1.0 aproxima tudo do cinza medio (menos contraste).
-  Fator = 1.0 nao altera a imagem.
-
-  Uso: opcao 3, informe o fator (ex: 1.5 ou 0.7), defina a regiao.
-
-4. AJUSTE DE CANAL (R/G/B)
---------------------------
-  Multiplica apenas um canal de cor por um fator:
-    novo_canal = clamp(canal * fator, 0, max_cor)
-
-  Permite, por exemplo, reduzir o canal azul para dar tom mais quente,
-  ou zerar o verde para criar efeito com apenas duas cores.
-
-  Uso: opcao 4, informe o canal (0=R, 1=G, 2=B), informe o fator
-       (ex: 0.0 elimina, 2.0 dobra), defina a regiao.
-
-5. ESCALA DE CINZA
+3. ESCALA DE CINZA
 ------------------
   Converte a imagem para tons de cinza com ponderacao perceptual:
     cinza = 0.299*R + 0.587*G + 0.114*B
@@ -114,77 +87,40 @@ SELECAO DE REGIAO (RECORTE)
   (mais sensivel ao verde, menos ao azul). O valor e atribuido
   igualmente a R, G e B, resultando em um pixel cinza.
 
-  Uso: opcao 5, defina a regiao.
-
-6. LIMIARIZACAO (THRESHOLD)
----------------------------
-  Cria uma imagem binaria (preto e branco) com base em um limiar:
-    luminancia = (R + G + B) / 3
-    se luminancia >= limiar: pixel = branco (max_cor)
-    se luminancia <  limiar: pixel = preto  (0)
-
-  Util para segmentacao simples e efeitos graficos de alto contraste.
-
-  Uso: opcao 6, informe o limiar (0 a max_cor, ex: 128), defina a regiao.
+  Uso: opcao 3, defina a regiao.
 
 ================================================================================
                            FILTROS POSICIONAIS
 ================================================================================
 
-7. FLIP VERTICAL
+4. FLIP VERTICAL
 ----------------
   Inverte a ordem das linhas dentro da regiao: a primeira linha troca
   com a ultima, a segunda com a penultima, e assim por diante.
   Resultado: imagem refletida no eixo horizontal (de cima para baixo).
 
-  Uso: opcao 7, defina a regiao.
+  Uso: opcao 4, defina a regiao.
 
-8. FLIP HORIZONTAL
+5. FLIP HORIZONTAL
 ------------------
   Inverte a ordem das colunas em cada linha da regiao: o pixel mais
   a esquerda troca com o mais a direita.
   Resultado: imagem espelhada no eixo vertical.
 
-  Uso: opcao 8, defina a regiao.
+  Uso: opcao 5, defina a regiao.
 
-9. ROTACAO 90° HORARIO
------------------------
-  Rotaciona a regiao 90 graus no sentido horario. Para regioes nao
-  quadradas, a rotacao opera sobre o maior quadrado contido na regiao.
-  Transformacao: pixel[i][j] -> novo[j][lado-1-i]
-
-  Uso: opcao 9, defina a regiao (preferencialmente quadrada).
-
-10. ROTACAO 180°
+6. ROTACAO 180°
 ----------------
   Rotaciona a imagem (ou regiao) em 180 graus. Internamente equivale
   a flip vertical seguido de flip horizontal.
 
-  Uso: opcao 10, defina a regiao.
-
-11. ROTACAO 270° HORARIO (= 90° anti-horario)
----------------------------------------------
-  Aplica a rotacao de 90° tres vezes consecutivas, resultando em 270°
-  no sentido horario (equivalente a 90° no sentido anti-horario).
-
-  Uso: opcao 11, defina a regiao.
-
-12. MOSAICO (PIXELIZACAO)
---------------------------
-  Divide a regiao em blocos de N x N pixels. Cada bloco e substituido
-  pela cor media de todos os seus pixels originais:
-    media_R = soma(R de todos os pixels do bloco) / quantidade
-
-  Cria um efeito de pixelizacao, similar ao usado para ocultar rostos
-  ou criar estetica retro de videogames antigos.
-
-  Uso: opcao 12, informe o tamanho do bloco (ex: 8 ou 16), defina a regiao.
+  Uso: opcao 6, defina a regiao.
 
 ================================================================================
                       CONVOLUCAO COM NUCLEO PERSONALIZADO
 ================================================================================
 
-13. CONVOLUCAO NxN
+7. CONVOLUCAO NxN
 ------------------
   A convolucao substitui cada pixel pela combinacao ponderada de seus
   vizinhos, conforme definido por um nucleo NxN:
@@ -224,34 +160,8 @@ SELECAO DE REGIAO (RECORTE)
     -1  1  1
      0  1  2
 
-  Uso: opcao 13, informe N, preencha o nucleo linha a linha,
+  Uso: opcao 7, informe N, preencha o nucleo linha a linha,
        defina a regiao.
-
-================================================================================
-                         PARTE 2 — INTERFACE VISUAL (BONUS)
-================================================================================
-
-  A pasta interface/ contem uma interface grafica opcional que pode ser
-  aberta diretamente no navegador (Chrome, Edge, Firefox), sem necessidade
-  de compilacao ou instalacao de programas adicionais.
-
-  COMO USAR:
-    1. Abra a pasta interface/
-    2. Clique duas vezes em index.html
-    3. Clique em "Selecionar arquivo .ppm" e escolha uma imagem
-    4. Clique em qualquer filtro — um painel de parametros abrira
-    5. Configure os parametros e clique em "Aplicar"
-    6. Use "Desfazer" para reverter, "Resetar" para voltar ao original
-    7. Clique "Salvar .ppm" para baixar o resultado
-
-  ARQUIVOS:
-    index.html  — estrutura da pagina (HTML)
-    style.css   — estilos visuais (CSS)
-    filtros.js  — logica de todos os filtros (JavaScript)
-
-  Os algoritmos implementados no JavaScript sao identicos aos do codigo
-  C, produzindo os mesmos resultados. Esta interface e apenas um
-  complemento visual ao programa principal em C.
 
 ================================================================================
                               EXEMPLO DE SESSAO (TERMINAL)
@@ -266,7 +176,7 @@ SELECAO DE REGIAO (RECORTE)
   Aplicar em regiao especifica? (s/n): n
   Brilho aplicado.
 
-  Opcao: 13
+  Opcao: 7
   Tamanho do nucleo NxN: 3
   Linha 0: 1 1 1
   Linha 1: 1 1 1
@@ -278,7 +188,7 @@ SELECAO DE REGIAO (RECORTE)
   Linha final:    6
   Convolucao aplicada.
 
-  Opcao: 14
+  Opcao: 8
   Nome do arquivo de saida: resultado.ppm
   Imagem salva em 'resultado.ppm'.
 
