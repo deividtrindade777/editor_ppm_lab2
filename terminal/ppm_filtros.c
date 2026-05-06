@@ -1,27 +1,27 @@
 /*
  * =============================================================
- *  ppm_filtros.c
- *  Manipulador de Imagens PPM (variante P3)
+ * ppm_filtros.c
+ * Manipulador de Imagens PPM (variante P3)
  *
- *  Funcionalidades:
- *    - Leitura e escrita de arquivos PPM P3
- *    - 6 filtros de cor:
- *        1. Negativo       4. Ajuste de Canal
- *        2. Brilho         5. Escala de Cinza
- *        3. Contraste      6. Limiarizacao
- *    - 6 filtros posicionais:
- *        7. Flip Vertical   10. Rotacao 180°
- *        8. Flip Horizontal 11. Rotacao 270°
- *        9. Rotacao 90°     12. Mosaico
- *    - Convolucao com nucleo NxN livre (minimo 3x3)
- *    - Selecao de regiao (recorte) opcional em todos os filtros
+ * Funcionalidades:
+ * - Leitura e escrita de arquivos PPM P3
+ * - Selecao de regiao (recorte) opcional em todos os filtros
+ * - 3 filtros de cor:
+ * 1. Negativo
+ * 2. Brilho
+ * 3. Escala de Cinza
+ * - 3 filtros posicionais:
+ * 4. Flip Vertical
+ * 5. Flip Horizontal
+ * 6. Rotacao 180°
+ * - Convolucao com nucleo NxN livre (minimo 3x3)
  *
- *  Compilacao:
- *    gcc -o ppm_filtros ppm_filtros.c -lm
+ * Compilacao:
+ * gcc -o ppm_filtros ppm_filtros.c -lm
  *
- *  Uso:
- *    Linux/Mac: ./ppm_filtros
- *    Windows:   .\ppm_filtros.exe
+ * Uso:
+ * Linux/Mac: ./ppm_filtros
+ * Windows:   .\ppm_filtros.exe
  * =============================================================
  */
 
@@ -31,7 +31,7 @@
 #include <math.h>
 
 /* =============================================================
- *  ESTRUTURAS DE DADOS
+ * ESTRUTURAS DE DADOS
  * ============================================================= */
 
 /* Representa um unico pixel com tres canais de cor (RGB). */
@@ -39,32 +39,26 @@ typedef struct {
     unsigned char r, g, b;
 } Pixel;
 
-/*
- * Representa uma imagem PPM completa.
- * pixels[linha][coluna] — matriz alocada dinamicamente.
- */
+/* Representa uma imagem PPM completa. */
 typedef struct {
-    int    largura;   /* numero de colunas */
-    int    altura;    /* numero de linhas  */
-    int    max_cor;   /* valor maximo por canal (normalmente 255) */
+    int    largura;   
+    int    altura;    
+    int    max_cor;   
     Pixel **pixels;
 } Imagem;
 
 /* =============================================================
- *  FUNCOES AUXILIARES
+ * FUNCOES AUXILIARES
  * ============================================================= */
 
-/*
- * Limita 'valor' ao intervalo [lo, hi].
- * Evita overflow nos canais apos aplicacao de filtros.
- */
+/* Limita 'valor' ao intervalo [lo, hi]. */
 int clamp(int valor, int lo, int hi) {
     if (valor < lo) return lo;
     if (valor > hi) return hi;
     return valor;
 }
 
-/* Aloca matriz de pixels (altura x largura). Encerra em falha. */
+/* Aloca matriz de pixels (altura x largura). */
 Pixel **alocar_pixels(int altura, int largura) {
     Pixel **p = (Pixel **)malloc(altura * sizeof(Pixel *));
     if (!p) { fprintf(stderr, "Erro: memoria insuficiente.\n"); exit(1); }
@@ -81,10 +75,7 @@ void liberar_pixels(Pixel **p, int altura) {
     free(p);
 }
 
-/*
- * Retorna copia profunda de 'src' com nova matriz de pixels.
- * Usada pela convolucao para nao ler pixels ja modificados.
- */
+/* Retorna copia profunda de 'src' com nova matriz de pixels. */
 Imagem copiar_imagem(const Imagem *src) {
     Imagem dst;
     dst.largura = src->largura;
@@ -104,27 +95,14 @@ void liberar_imagem(Imagem *img) {
 }
 
 /* =============================================================
- *  LEITURA E ESCRITA PPM P3
+ * LEITURA E ESCRITA PPM P3
  * ============================================================= */
 
-/*
- * Le um arquivo PPM P3 do caminho indicado e retorna a Imagem.
- *
- * Formato esperado (sem comentarios '#'):
- *   linha 1: "P3"
- *   linha 2: largura altura
- *   linha 3: max_cor
- *   restante: triplas R G B por pixel, da esquerda para direita,
- *             de cima para baixo.
- */
 Imagem ler_ppm(const char *caminho) {
     Imagem img;
-
     FILE *f = fopen(caminho, "r");
     if (!f) {
-        fprintf(stderr, "Erro: nao foi possivel abrir '%s'.\n"
-                        "Verifique se o arquivo esta na mesma pasta do executavel.\n",
-                caminho);
+        fprintf(stderr, "Erro: nao foi possivel abrir '%s'.\n", caminho);
         exit(1);
     }
 
@@ -144,7 +122,7 @@ Imagem ler_ppm(const char *caminho) {
         for (int j = 0; j < img.largura; j++) {
             int r, g, b;
             if (fscanf(f, "%d %d %d", &r, &g, &b) != 3) {
-                fprintf(stderr, "Erro: dados de pixel incompletos em '%s'.\n", caminho);
+                fprintf(stderr, "Erro: dados de pixel incompletos.\n");
                 fclose(f);
                 exit(1);
             }
@@ -158,11 +136,6 @@ Imagem ler_ppm(const char *caminho) {
     return img;
 }
 
-/*
- * Salva a imagem no formato PPM P3.
- * Cada linha do arquivo corresponde a uma linha da imagem,
- * com os valores RGB separados por espacos.
- */
 void salvar_ppm(const Imagem *img, const char *caminho) {
     FILE *f = fopen(caminho, "w");
     if (!f) {
@@ -174,10 +147,7 @@ void salvar_ppm(const Imagem *img, const char *caminho) {
 
     for (int i = 0; i < img->altura; i++) {
         for (int j = 0; j < img->largura; j++) {
-            fprintf(f, "%d %d %d",
-                img->pixels[i][j].r,
-                img->pixels[i][j].g,
-                img->pixels[i][j].b);
+            fprintf(f, "%d %d %d", img->pixels[i][j].r, img->pixels[i][j].g, img->pixels[i][j].b);
             if (j < img->largura - 1) fprintf(f, "   ");
         }
         fprintf(f, "\n");
@@ -188,23 +158,10 @@ void salvar_ppm(const Imagem *img, const char *caminho) {
 }
 
 /* =============================================================
- *  SELECAO DE REGIAO (RECORTE)
+ * SELECAO DE REGIAO (RECORTE)
  * ============================================================= */
 
-/*
- * Pergunta ao usuario se deseja aplicar o filtro em uma regiao
- * especifica. Se sim, solicita as coordenadas do retangulo:
- *   (x1, y1) = canto superior-esquerdo
- *   (x2, y2) = canto inferior-direito (ambos inclusivos)
- *
- * Os valores sao ajustados automaticamente para ficar dentro
- * dos limites validos da imagem. Se o usuario escolher a imagem
- * toda, preenche as coordenadas com os extremos.
- *
- * Retorna 1 se houver selecao, 0 se for imagem toda.
- */
-int perguntar_recorte(const Imagem *img,
-                      int *x1, int *y1, int *x2, int *y2) {
+int perguntar_recorte(const Imagem *img, int *x1, int *y1, int *x2, int *y2) {
     char resp;
     printf("Aplicar em uma regiao especifica? (s/n): ");
     scanf(" %c", &resp);
@@ -229,19 +186,9 @@ int perguntar_recorte(const Imagem *img,
 }
 
 /* =============================================================
- *  FILTROS DE COR
- *
- *  Todos recebem a imagem e as coordenadas da regiao (x1,y1)
- *  ate (x2,y2), ambos inclusivos, e modificam apenas os pixels
- *  dentro dessa area.
+ * FILTROS DE COR
  * ============================================================= */
 
-/*
- * NEGATIVO
- * Inverte cada canal: novo = max_cor - canal.
- * Pixels claros ficam escuros e vice-versa.
- * Cores tornam-se seus complementares (ex.: vermelho vira ciano).
- */
 void filtro_negativo(Imagem *img, int x1, int y1, int x2, int y2) {
     int M = img->max_cor;
     for (int i = y1; i <= y2; i++)
@@ -252,11 +199,6 @@ void filtro_negativo(Imagem *img, int x1, int y1, int x2, int y2) {
         }
 }
 
-/*
- * BRILHO
- * Soma 'delta' a cada canal: novo = clamp(canal + delta, 0, max).
- * Delta positivo ilumina; delta negativo escurece.
- */
 void filtro_brilho(Imagem *img, int delta, int x1, int y1, int x2, int y2) {
     int M = img->max_cor;
     for (int i = y1; i <= y2; i++)
@@ -267,87 +209,19 @@ void filtro_brilho(Imagem *img, int delta, int x1, int y1, int x2, int y2) {
         }
 }
 
-/*
- * CONTRASTE
- * Ajusta em relacao ao ponto medio (mid = max_cor / 2):
- *   novo = clamp(mid + fator * (canal - mid), 0, max)
- * Fator > 1 aumenta contraste; 0 < fator < 1 reduz.
- */
-void filtro_contraste(Imagem *img, float fator, int x1, int y1, int x2, int y2) {
-    int   M   = img->max_cor;
-    float mid = M / 2.0f;
-    for (int i = y1; i <= y2; i++)
-        for (int j = x1; j <= x2; j++) {
-            img->pixels[i][j].r = (unsigned char)clamp((int)(mid + fator * (img->pixels[i][j].r - mid)), 0, M);
-            img->pixels[i][j].g = (unsigned char)clamp((int)(mid + fator * (img->pixels[i][j].g - mid)), 0, M);
-            img->pixels[i][j].b = (unsigned char)clamp((int)(mid + fator * (img->pixels[i][j].b - mid)), 0, M);
-        }
-}
-
-/*
- * AJUSTE DE CANAL
- * Multiplica apenas um canal (R=0, G=1, B=2) por 'fator':
- *   novo = clamp(canal * fator, 0, max)
- * Fator 0.0 zera o canal; fator 2.0 dobra sua intensidade.
- */
-void filtro_canal(Imagem *img, int canal, float fator, int x1, int y1, int x2, int y2) {
-    int M = img->max_cor;
-    for (int i = y1; i <= y2; i++)
-        for (int j = x1; j <= x2; j++) {
-            Pixel *p = &img->pixels[i][j];
-            if      (canal == 0) p->r = (unsigned char)clamp((int)(p->r * fator), 0, M);
-            else if (canal == 1) p->g = (unsigned char)clamp((int)(p->g * fator), 0, M);
-            else                 p->b = (unsigned char)clamp((int)(p->b * fator), 0, M);
-        }
-}
-
-/*
- * ESCALA DE CINZA
- * Converte com ponderacao perceptual ITU-R BT.601:
- *   cinza = 0.299*R + 0.587*G + 0.114*B
- * Os pesos refletem a sensibilidade do olho humano a cada cor.
- */
 void filtro_cinza(Imagem *img, int x1, int y1, int x2, int y2) {
     for (int i = y1; i <= y2; i++)
         for (int j = x1; j <= x2; j++) {
             Pixel *p = &img->pixels[i][j];
-            unsigned char c = (unsigned char)(0.299f * p->r
-                                            + 0.587f * p->g
-                                            + 0.114f * p->b);
+            unsigned char c = (unsigned char)(0.299f * p->r + 0.587f * p->g + 0.114f * p->b);
             p->r = p->g = p->b = c;
         }
 }
 
-/*
- * LIMIARIZACAO (THRESHOLD)
- * Binariza a imagem com base em um limiar:
- *   media = (R + G + B) / 3
- *   media >= limiar -> branco (max_cor)
- *   media <  limiar -> preto  (0)
- */
-void filtro_limiar(Imagem *img, int limiar, int x1, int y1, int x2, int y2) {
-    int M = img->max_cor;
-    for (int i = y1; i <= y2; i++)
-        for (int j = x1; j <= x2; j++) {
-            Pixel *p     = &img->pixels[i][j];
-            int    media = ((int)p->r + p->g + p->b) / 3;
-            unsigned char val = (media >= limiar) ? (unsigned char)M : 0;
-            p->r = p->g = p->b = val;
-        }
-}
-
 /* =============================================================
- *  FILTROS POSICIONAIS
- *
- *  Reorganizam a posicao dos pixels dentro da regiao indicada.
+ * FILTROS POSICIONAIS
  * ============================================================= */
 
-/*
- * FLIP VERTICAL
- * Inverte a ordem das linhas: a primeira troca com a ultima,
- * a segunda com a penultima, e assim por diante.
- * Resultado: imagem refletida no eixo horizontal.
- */
 void filtro_flip_vertical(Imagem *img, int x1, int y1, int x2, int y2) {
     int topo = y1, base = y2;
     while (topo < base) {
@@ -360,11 +234,6 @@ void filtro_flip_vertical(Imagem *img, int x1, int y1, int x2, int y2) {
     }
 }
 
-/*
- * FLIP HORIZONTAL
- * Inverte a ordem das colunas em cada linha da regiao.
- * Resultado: imagem espelhada no eixo vertical.
- */
 void filtro_flip_horizontal(Imagem *img, int x1, int y1, int x2, int y2) {
     int esq = x1, dir = x2;
     while (esq < dir) {
@@ -377,110 +246,16 @@ void filtro_flip_horizontal(Imagem *img, int x1, int y1, int x2, int y2) {
     }
 }
 
-/*
- * ROTACAO 90 GRAUS HORARIO
- * Copia a regiao para matriz temporaria e reposiciona:
- *   tmp[i][j] -> img[y1+j][x1+(lado-1-i)]
- * Para regioes nao quadradas, opera sobre o maior quadrado
- * contido (lado = min(largura, altura) da regiao).
- */
-void filtro_rotacao90(Imagem *img, int x1, int y1, int x2, int y2) {
-    int rw = x2 - x1 + 1;
-    int rh = y2 - y1 + 1;
-
-    Pixel **tmp = alocar_pixels(rh, rw);
-    for (int i = 0; i < rh; i++)
-        for (int j = 0; j < rw; j++)
-            tmp[i][j] = img->pixels[y1 + i][x1 + j];
-
-    int lado = (rw < rh) ? rw : rh;
-    for (int i = 0; i < lado; i++)
-        for (int j = 0; j < lado; j++)
-            img->pixels[y1 + j][x1 + (lado - 1 - i)] = tmp[i][j];
-
-    liberar_pixels(tmp, rh);
-}
-
-/*
- * ROTACAO 180 GRAUS
- * Equivale a flip vertical seguido de flip horizontal.
- */
 void filtro_rotacao180(Imagem *img, int x1, int y1, int x2, int y2) {
-    filtro_flip_vertical  (img, x1, y1, x2, y2);
+    filtro_flip_vertical(img, x1, y1, x2, y2);
     filtro_flip_horizontal(img, x1, y1, x2, y2);
 }
 
-/*
- * ROTACAO 270 GRAUS HORARIO (= 90 graus anti-horario)
- * Aplica filtro_rotacao90 tres vezes consecutivas.
- */
-void filtro_rotacao270(Imagem *img, int x1, int y1, int x2, int y2) {
-    filtro_rotacao90(img, x1, y1, x2, y2);
-    filtro_rotacao90(img, x1, y1, x2, y2);
-    filtro_rotacao90(img, x1, y1, x2, y2);
-}
-
-/*
- * MOSAICO (PIXELIZACAO)
- * Divide a regiao em blocos de tam_bloco x tam_bloco pixels.
- * Cada bloco e substituido pela media de cor dos seus pixels.
- * Cria efeito de pixelizacao semelhante ao usado para ocultar rostos.
- */
-void filtro_mosaico(Imagem *img, int tam_bloco, int x1, int y1, int x2, int y2) {
-    for (int bi = y1; bi <= y2; bi += tam_bloco) {
-        for (int bj = x1; bj <= x2; bj += tam_bloco) {
-            int iy2 = (bi + tam_bloco - 1 < y2) ? bi + tam_bloco - 1 : y2;
-            int jx2 = (bj + tam_bloco - 1 < x2) ? bj + tam_bloco - 1 : x2;
-
-            long sr = 0, sg = 0, sb = 0, cnt = 0;
-            for (int i = bi; i <= iy2; i++)
-                for (int j = bj; j <= jx2; j++) {
-                    sr += img->pixels[i][j].r;
-                    sg += img->pixels[i][j].g;
-                    sb += img->pixels[i][j].b;
-                    cnt++;
-                }
-
-            unsigned char mr = (unsigned char)(sr / cnt);
-            unsigned char mg = (unsigned char)(sg / cnt);
-            unsigned char mb = (unsigned char)(sb / cnt);
-
-            for (int i = bi; i <= iy2; i++)
-                for (int j = bj; j <= jx2; j++) {
-                    img->pixels[i][j].r = mr;
-                    img->pixels[i][j].g = mg;
-                    img->pixels[i][j].b = mb;
-                }
-        }
-    }
-}
-
 /* =============================================================
- *  CONVOLUCAO COM NUCLEO NxN
+ * CONVOLUCAO
  * ============================================================= */
 
-/*
- * Aplica um nucleo de convolucao de tamanho n x n sobre a regiao.
- *
- * Para cada pixel (i,j) da regiao:
- *   novo(i,j) = soma(nucleo[ki][kj] * copia[i+ki-meia][j+kj-meia])
- *               / soma_dos_pesos_do_nucleo
- *
- * - Clamp padding nas bordas: indices fora dos limites usam o pixel
- *   de borda mais proximo, evitando artefatos.
- * - Uma copia da imagem e usada como fonte de leitura, garantindo
- *   que pixels ja processados nao influenciem os seguintes.
- * - Se a soma dos pesos for zero (ex.: deteccao de borda), o divisor
- *   e forcado a 1.0 para evitar divisao por zero.
- *
- * Exemplos de nucleos:
- *   Blur 3x3:          todos = 1      (media dos vizinhos)
- *   Nitidez 3x3:       centro=5, vizinhos diretos=-1, cantos=0
- *   Detec. borda 3x3:  centro=8, todos os outros=-1
- */
-void aplicar_convolucao(Imagem *img,
-                        float **nucleo, int n,
-                        int x1, int y1, int x2, int y2) {
+void aplicar_convolucao(Imagem *img, float **nucleo, int n, int x1, int y1, int x2, int y2) {
     int   meia = n / 2;
     int   M    = img->max_cor;
 
@@ -515,7 +290,7 @@ void aplicar_convolucao(Imagem *img,
 }
 
 /* =============================================================
- *  MENU E PROGRAMA PRINCIPAL
+ * MENU E PROGRAMA PRINCIPAL
  * ============================================================= */
 
 void exibir_menu(void) {
@@ -523,21 +298,15 @@ void exibir_menu(void) {
     printf("--- Filtros de Cor ---\n");
     printf(" 1. Negativo\n");
     printf(" 2. Brilho\n");
-    printf(" 3. Contraste\n");
-    printf(" 4. Ajuste de Canal (R/G/B)\n");
-    printf(" 5. Escala de Cinza\n");
-    printf(" 6. Limiarizacao\n");
+    printf(" 3. Escala de Cinza\n");
     printf("--- Filtros Posicionais ---\n");
-    printf(" 7. Flip Vertical\n");
-    printf(" 8. Flip Horizontal\n");
-    printf(" 9. Rotacao 90 graus Horario\n");
-    printf("10. Rotacao 180 graus\n");
-    printf("11. Rotacao 270 graus Horario\n");
-    printf("12. Mosaico (Pixelizacao)\n");
+    printf(" 4. Flip Vertical\n");
+    printf(" 5. Flip Horizontal\n");
+    printf(" 6. Rotacao 180 graus\n");
     printf("--- Convolucao ---\n");
-    printf("13. Convolucao com Nucleo Personalizado\n");
+    printf(" 7. Convolucao com Nucleo Personalizado\n");
     printf("--- Arquivo ---\n");
-    printf("14. Salvar imagem\n");
+    printf(" 8. Salvar imagem\n");
     printf(" 0. Sair\n");
     printf("==========================\n");
     printf("Opcao: ");
@@ -549,7 +318,6 @@ int main(void) {
     printf("=== Manipulador de Imagens PPM P3 ===\n");
     printf("Arquivo PPM de entrada: ");
 
-    /* fgets aceita caminhos com espacos; strcspn remove o '\n' final */
     if (!fgets(caminho, sizeof(caminho), stdin)) {
         fprintf(stderr, "Erro ao ler o nome do arquivo.\n");
         return 1;
@@ -557,8 +325,7 @@ int main(void) {
     caminho[strcspn(caminho, "\n")] = '\0';
 
     Imagem img = ler_ppm(caminho);
-    printf("Imagem carregada: %d x %d pixels, max_cor=%d\n",
-           img.largura, img.altura, img.max_cor);
+    printf("Imagem carregada: %d x %d pixels, max_cor=%d\n", img.largura, img.altura, img.max_cor);
 
     int opcao;
     do {
@@ -568,9 +335,6 @@ int main(void) {
         int x1, y1, x2, y2;
 
         switch (opcao) {
-
-        /* ── Filtros de Cor ── */
-
         case 1:
             perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             filtro_negativo(&img, x1, y1, x2, y2);
@@ -587,92 +351,31 @@ int main(void) {
             break;
         }
 
-        case 3: {
-            float fator;
-            printf("Fator de contraste (ex: 1.5 aumenta, 0.5 reduz): ");
-            scanf("%f", &fator);
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_contraste(&img, fator, x1, y1, x2, y2);
-            printf("Contraste aplicado.\n");
-            break;
-        }
-
-        case 4: {
-            int   canal;
-            float fator;
-            printf("Canal (0=R, 1=G, 2=B): ");
-            scanf("%d", &canal);
-            canal = clamp(canal, 0, 2);
-            printf("Fator multiplicador (ex: 0.0 zera, 2.0 dobra): ");
-            scanf("%f", &fator);
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_canal(&img, canal, fator, x1, y1, x2, y2);
-            printf("Ajuste de canal aplicado.\n");
-            break;
-        }
-
-        case 5:
+        case 3:
             perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             filtro_cinza(&img, x1, y1, x2, y2);
             printf("Escala de cinza aplicada.\n");
             break;
 
-        case 6: {
-            int limiar;
-            printf("Limiar (0..%d): ", img.max_cor);
-            scanf("%d", &limiar);
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_limiar(&img, limiar, x1, y1, x2, y2);
-            printf("Limiarizacao aplicada.\n");
-            break;
-        }
-
-        /* ── Filtros Posicionais ── */
-
-        case 7:
+        case 4:
             perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             filtro_flip_vertical(&img, x1, y1, x2, y2);
             printf("Flip vertical aplicado.\n");
             break;
 
-        case 8:
+        case 5:
             perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             filtro_flip_horizontal(&img, x1, y1, x2, y2);
             printf("Flip horizontal aplicado.\n");
             break;
 
-        case 9:
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_rotacao90(&img, x1, y1, x2, y2);
-            printf("Rotacao 90 graus horario aplicada.\n");
-            break;
-
-        case 10:
+        case 6:
             perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             filtro_rotacao180(&img, x1, y1, x2, y2);
             printf("Rotacao 180 graus aplicada.\n");
             break;
 
-        case 11:
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_rotacao270(&img, x1, y1, x2, y2);
-            printf("Rotacao 270 graus horario aplicada.\n");
-            break;
-
-        case 12: {
-            int tam;
-            printf("Tamanho do bloco (ex: 8, 16): ");
-            scanf("%d", &tam);
-            if (tam < 1) tam = 1;
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
-            filtro_mosaico(&img, tam, x1, y1, x2, y2);
-            printf("Mosaico aplicado.\n");
-            break;
-        }
-
-        /* ── Convolucao ── */
-
-        case 13: {
+        case 7: {
             int n;
             printf("Tamanho do nucleo NxN (minimo 3, deve ser impar): ");
             scanf("%d", &n);
@@ -699,11 +402,8 @@ int main(void) {
             break;
         }
 
-        /* ── Arquivo ── */
-
-        case 14: {
+        case 8: {
             char saida[512];
-            /* Consome o '\n' residual do buffer antes do fgets */
             int c; while ((c = getchar()) != '\n' && c != EOF);
             printf("Nome do arquivo de saida (ex: saida.ppm): ");
             fgets(saida, sizeof(saida), stdin);
