@@ -164,6 +164,8 @@ void salvar_ppm(const Imagem *img, const char *caminho) {
 int perguntar_recorte(const Imagem *img, int *x1, int *y1, int *x2, int *y2) {
     char resp;
     printf("Aplicar em uma regiao especifica? (s/n): ");
+    
+    // Limpa espacos em branco ou quebras de linha pendentes
     scanf(" %c", &resp);
 
     if (resp != 's' && resp != 'S') {
@@ -173,10 +175,18 @@ int perguntar_recorte(const Imagem *img, int *x1, int *y1, int *x2, int *y2) {
     }
 
     printf("Dimensoes: %d colunas x %d linhas\n", img->largura, img->altura);
-    printf("Coluna inicial (0..%d): ",        img->largura - 1); scanf("%d", x1);
-    printf("Linha inicial  (0..%d): ",        img->altura  - 1); scanf("%d", y1);
-    printf("Coluna final   (%d..%d): ", *x1,  img->largura - 1); scanf("%d", x2);
-    printf("Linha final    (%d..%d): ", *y1,  img->altura  - 1); scanf("%d", y2);
+    
+    printf("Coluna inicial (0..%d): ", img->largura - 1); 
+    while (scanf("%d", x1) != 1) { int c; while ((c = getchar()) != '\n' && c != EOF); printf("[ERRO] Digite um numero: "); }
+    
+    printf("Linha inicial  (0..%d): ", img->altura  - 1); 
+    while (scanf("%d", y1) != 1) { int c; while ((c = getchar()) != '\n' && c != EOF); printf("[ERRO] Digite um numero: "); }
+    
+    printf("Coluna final   (%d..%d): ", *x1, img->largura - 1); 
+    while (scanf("%d", x2) != 1) { int c; while ((c = getchar()) != '\n' && c != EOF); printf("[ERRO] Digite um numero: "); }
+    
+    printf("Linha final    (%d..%d): ", *y1, img->altura  - 1); 
+    while (scanf("%d", y2) != 1) { int c; while ((c = getchar()) != '\n' && c != EOF); printf("[ERRO] Digite um numero: "); }
 
     *x1 = clamp(*x1, 0,   img->largura - 1);
     *y1 = clamp(*y1, 0,   img->altura  - 1);
@@ -330,7 +340,15 @@ int main(void) {
     int opcao;
     do {
         exibir_menu();
-        scanf("%d", &opcao);
+        
+        // TRATAMENTO DE ERRO: Se o usuário digitar letra em vez de número
+        if (scanf("%d", &opcao) != 1) {
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF); // Limpa o buffer do teclado
+            printf("\n[ERRO] Entrada invalida! Por favor, digite um numero.\n");
+            opcao = -1; // Força a repetição do menu
+            continue;
+        }
 
         int x1, y1, x2, y2;
 
@@ -342,10 +360,16 @@ int main(void) {
             break;
 
         case 2: {
+            perguntar_recorte(&img, &x1, &y1, &x2, &y2); // Pergunta do recorte PRIMEIRO
+            
             int delta;
             printf("Delta de brilho (negativo escurece, positivo ilumina): ");
-            scanf("%d", &delta);
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
+            // Proteção contra letras
+            while (scanf("%d", &delta) != 1) {
+                int c; while ((c = getchar()) != '\n' && c != EOF);
+                printf("[ERRO] Digite um numero valido para o delta: ");
+            }
+            
             filtro_brilho(&img, delta, x1, y1, x2, y2);
             printf("Brilho aplicado.\n");
             break;
@@ -376,9 +400,14 @@ int main(void) {
             break;
 
         case 7: {
+            perguntar_recorte(&img, &x1, &y1, &x2, &y2); // Pergunta do recorte PRIMEIRO
+            
             int n;
             printf("Tamanho do nucleo NxN (minimo 3, deve ser impar): ");
-            scanf("%d", &n);
+            while (scanf("%d", &n) != 1) {
+                int c; while ((c = getchar()) != '\n' && c != EOF);
+                printf("[ERRO] Digite um numero valido: ");
+            }
             if (n < 3) n = 3;
             if (n % 2 == 0) n++;
 
@@ -389,11 +418,14 @@ int main(void) {
             printf("Digite os %d valores do nucleo, linha por linha:\n", n * n);
             for (int i = 0; i < n; i++) {
                 printf("  Linha %d: ", i);
-                for (int j = 0; j < n; j++)
-                    scanf("%f", &nucleo[i][j]);
+                for (int j = 0; j < n; j++) {
+                    while (scanf("%f", &nucleo[i][j]) != 1) {
+                        int c; while ((c = getchar()) != '\n' && c != EOF);
+                        printf("[ERRO] Valor invalido! Digite um numero para a posicao [%d][%d]: ", i, j);
+                    }
+                }
             }
 
-            perguntar_recorte(&img, &x1, &y1, &x2, &y2);
             aplicar_convolucao(&img, nucleo, n, x1, y1, x2, y2);
 
             for (int i = 0; i < n; i++) free(nucleo[i]);
@@ -404,7 +436,7 @@ int main(void) {
 
         case 8: {
             char saida[512];
-            int c; while ((c = getchar()) != '\n' && c != EOF);
+            int c; while ((c = getchar()) != '\n' && c != EOF); // Limpa buffer antes de ler string
             printf("Nome do arquivo de saida (ex: saida.ppm): ");
             fgets(saida, sizeof(saida), stdin);
             saida[strcspn(saida, "\n")] = '\0';
@@ -417,7 +449,9 @@ int main(void) {
             break;
 
         default:
-            printf("Opcao invalida. Tente novamente.\n");
+            if (opcao != -1) {
+                printf("\n[ERRO] Opcao invalida. Escolha um numero de 0 a 8.\n");
+            }
         }
 
     } while (opcao != 0);
