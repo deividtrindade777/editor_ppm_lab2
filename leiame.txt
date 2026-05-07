@@ -5,7 +5,7 @@
 ESTRUTURA DO PROJETO
 --------------------
 
-  trab_candia/
+  editor_ppm_lab2/
   ├── leiame.txt               <- este arquivo
   └── terminal/
       ├── ppm_filtros.c        <- codigo C (entrega principal)
@@ -168,7 +168,7 @@ SELECAO DE REGIAO (RECORTE)
 ================================================================================
 
   $ .\ppm_filtros.exe
-  Arquivo PPM de entrada: gradiente.ppm
+  Arquivo PPM de entrada: saida.ppm
   Imagem carregada: 8 x 8 pixels, max_cor=255
 
   Opcao: 2

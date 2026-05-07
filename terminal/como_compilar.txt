@@ -11,5 +11,5 @@ COMO COMPILAR E EXECUTAR
    Windows:   .\ppm_filtros.exe
  
 4. Digite o nome do arquivo PPM quando solicitado.
-   - Nome simples:     gradiente.ppm
+   - Nome simples:     saida.ppm
      (o arquivo deve estar na mesma pasta que o executavel)
